@@ -17,7 +17,7 @@ let STORES = [...DEFAULT_STORES];
 
 // ── STATE ───────────────────────────────────────────────────────────────────
 let vehicleCount = 2;
-let driverPhones = ["", ""];
+let drivers = Array.from({ length: 2 }, () => ({ phone: "", name: "", plate: "" }));
 let vehicleType = "CDE";
 let selectedStores = new Set();
 let lastResult = null;
@@ -288,25 +288,33 @@ function downloadCsvTemplate() {
 function changeVehicle(delta) {
   vehicleCount = Math.max(1, Math.min(10, vehicleCount + delta));
   document.getElementById("vehicle-count").textContent = vehicleCount;
-  while (driverPhones.length < vehicleCount) driverPhones.push("");
-  driverPhones.length = vehicleCount;
-  buildDriverPhoneInputs();
+  while (drivers.length < vehicleCount) drivers.push({ phone: "", name: "", plate: "" });
+  drivers.length = vehicleCount;
+  buildDriverInputs();
   clearResult();
 }
 
-function buildDriverPhoneInputs() {
+function buildDriverInputs() {
   const wrap = document.getElementById("driver-phone-inputs");
   wrap.innerHTML = "";
   for (let i = 0; i < vehicleCount; i++) {
+    const driver = drivers[i] || { phone: "", name: "", plate: "" };
     const row = document.createElement("div");
     row.style.cssText =
-      "display:flex;align-items:center;gap:6px;margin-bottom:6px;";
+      "display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;margin-bottom:8px;";
     row.innerHTML = `
       <span style="font-size:11px;color:var(--gray-600);white-space:nowrap;min-width:78px;">Kendaraan ${i + 1}</span>
-      <input type="tel" class="form-select" style="padding:6px 8px;font-size:12px;" placeholder="6281234567890" data-driver-phone="${i}" value="${driverPhones[i] || ""}" />
+      <input type="text" class="form-select" style="flex:1;min-width:120px;padding:6px 8px;font-size:12px;" placeholder="Nama Driver" data-driver-field="name" data-driver-index="${i}" value="${driver.name || ""}" />
+      <input type="text" class="form-select" style="flex:1;min-width:120px;padding:6px 8px;font-size:12px;" placeholder="Nomor Polisi" data-driver-field="plate" data-driver-index="${i}" value="${driver.plate || ""}" />
+      <input type="tel" class="form-select" style="flex:1;min-width:120px;padding:6px 8px;font-size:12px;" placeholder="6281234567890" data-driver-field="phone" data-driver-index="${i}" value="${driver.phone || ""}" />
     `;
-    row.querySelector("input").addEventListener("input", (e) => {
-      driverPhones[i] = e.target.value.trim();
+    row.querySelectorAll("input").forEach((input) => {
+      input.addEventListener("input", (e) => {
+        const field = e.target.dataset.driverField;
+        const idx = Number(e.target.dataset.driverIndex);
+        if (!drivers[idx]) drivers[idx] = { phone: "", name: "", plate: "" };
+        drivers[idx][field] = e.target.value.trim();
+      });
     });
     wrap.appendChild(row);
   }
@@ -686,6 +694,7 @@ function buildDriverPanel(optData, selectedList) {
     const distKm = (route.distance / 1000).toFixed(1);
     const durMin = Math.round(route.duration / 60);
 
+    const driver = drivers[ri] || { name: "", plate: "", phone: "" };
     html += `
       <div class="result-card" style="margin-bottom:10px;">
         <div class="result-card-header" style="background:${color}15;border-bottom:2px solid ${color}30;">
@@ -693,6 +702,15 @@ function buildDriverPanel(optData, selectedList) {
           <span style="font-size:11px;">${distKm} km · ${durMin} mnt</span>
         </div>
         <div class="result-card-body">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+            <div style="flex:1;min-width:140px;font-size:12px;color:var(--gray-600);">
+              <strong>${driver.name || "Driver belum diisi"}</strong><br />
+              ${driver.plate ? `Polisi: ${driver.plate}` : "Nomor polisi belum diisi"}
+            </div>
+            <div style="flex:1;min-width:140px;font-size:12px;color:var(--gray-600);">
+              ${driver.phone ? `WA: ${driver.phone}` : "Nomor WA belum diisi"}
+            </div>
+          </div>
           <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
             <button class="btn btn-green btn-sm" data-wa="${ri}">💬 Pesan WA Driver</button>
             <button class="btn btn-outline btn-sm" data-gmaps2="${ri}">📍 Google Maps</button>
@@ -749,7 +767,11 @@ function showWaModal(routeIdx) {
 
   let msg = `🚛 *PENUGASAN PENGIRIMAN B-LOG*\n`;
   msg += `📅 ${today}\n`;
+  const driver = drivers[routeIdx] || { name: "", plate: "", phone: "" };
   msg += `🔑 Kendaraan ${routeIdx + 1} (${vehicleType})\n`;
+  msg += `👤 Driver: ${driver.name || "-"}\n`;
+  msg += `🚘 Nomor Polisi: ${driver.plate || "-"}\n`;
+  msg += `📱 WA: ${driver.phone || "-"}\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
   msg += `📍 *START:* ${depotName}\n\n`;
   msg += `📦 *TITIK PENGIRIMAN (${jobs.length} titik):*\n`;
@@ -768,7 +790,7 @@ function showWaModal(routeIdx) {
 
   document.getElementById("wa-msg-text").textContent = msg;
   document.getElementById("wa-send-btn").onclick = () => {
-    const phone = (driverPhones[routeIdx] || "").replace(/[^0-9]/g, "");
+    const phone = (drivers[routeIdx]?.phone || "").replace(/[^0-9]/g, "");
     const waUrl = phone
       ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
       : `https://wa.me/?text=${encodeURIComponent(msg)}`;
@@ -872,4 +894,4 @@ document.getElementById("btn-wa-copy").addEventListener("click", copyWaMsg);
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildStoreList();
 placeDepotMarker();
-buildDriverPhoneInputs();
+buildDriverInputs();
