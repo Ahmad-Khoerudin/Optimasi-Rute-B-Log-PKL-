@@ -16,8 +16,8 @@ const ORS_KEY = import.meta.env.VITE_ORS_KEY || "";
 let STORES = [...DEFAULT_STORES];
 
 // ── STATE ───────────────────────────────────────────────────────────────────
-let vehicleCount = 2;
-let drivers = Array.from({ length: 2 }, () => ({ phone: "", name: "", plate: "" }));
+let vehicleCount = 1;
+let drivers = Array.from({ length: 1 }, () => ({ phone: "", name: "", plate: "" }));
 let vehicleType = "CDE";
 let selectedStores = new Set();
 let lastResult = null;
@@ -284,15 +284,6 @@ function downloadCsvTemplate() {
   URL.revokeObjectURL(url);
 }
 
-// ── VEHICLE COUNTER ──────────────────────────────────────────────────────────
-function changeVehicle(delta) {
-  vehicleCount = Math.max(1, Math.min(10, vehicleCount + delta));
-  document.getElementById("vehicle-count").textContent = vehicleCount;
-  while (drivers.length < vehicleCount) drivers.push({ phone: "", name: "", plate: "" });
-  drivers.length = vehicleCount;
-  buildDriverInputs();
-  clearResult();
-}
 
 function buildDriverInputs() {
   const wrap = document.getElementById("driver-phone-inputs");
@@ -303,7 +294,6 @@ function buildDriverInputs() {
     row.style.cssText =
       "display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;margin-bottom:8px;";
     row.innerHTML = `
-      <span style="font-size:11px;color:var(--gray-600);white-space:nowrap;min-width:78px;">Kendaraan ${i + 1}</span>
       <input type="text" class="form-select" style="flex:1;min-width:120px;padding:6px 8px;font-size:12px;" placeholder="Nama Driver" data-driver-field="name" data-driver-index="${i}" value="${driver.name || ""}" />
       <input type="text" class="form-select" style="flex:1;min-width:120px;padding:6px 8px;font-size:12px;" placeholder="Nomor Polisi" data-driver-field="plate" data-driver-index="${i}" value="${driver.plate || ""}" />
       <input type="tel" class="form-select" style="flex:1;min-width:120px;padding:6px 8px;font-size:12px;" placeholder="6281234567890" data-driver-field="phone" data-driver-index="${i}" value="${driver.phone || ""}" />
@@ -390,7 +380,7 @@ async function runOptimization() {
     profile: "driving-car",
     start: [depotCoords.lon, depotCoords.lat],
     end: [depotCoords.lon, depotCoords.lat],
-    description: `Kendaraan ${i + 1} (${vehicleType})`,
+    description: `${vehicleType}`,
   }));
 
   const jobs = selectedList.map((s) => ({
@@ -472,7 +462,7 @@ async function runOptimization() {
       route.duration = safeNum(route.duration, 0);
       if (route.distance === 0) {
         console.warn(
-          `Kendaraan ${ri + 1}: jarak tidak terdeteksi dari ORS. Cek console untuk error Directions API di atas (kemungkinan API key tidak punya akses profil routing, atau kuota habis).`,
+          `Jarak tidak terdeteksi dari ORS. Cek console untuk error Directions API di atas (kemungkinan API key tidak punya akses profil routing, atau kuota habis).`,
         );
       }
     });
@@ -527,7 +517,7 @@ function renderResult(optData, routeGeometries, selectedList) {
         })
           .addTo(map)
           .bindPopup(
-            `<b style="color:${color}">🚛 Kendaraan ${ri + 1} — Stop ${stopNum}</b><br><b>${store.name}</b><br>${store.addr}`,
+            `<b style="color:${color}">🚛 Stop ${stopNum}</b><br><b>${store.name}</b><br>${store.addr}`,
           );
         mapLayers.push(m);
         bounds.push([store.lat, store.lon]);
@@ -558,7 +548,7 @@ function renderResult(optData, routeGeometries, selectedList) {
     const el = document.createElement("div");
     el.className = "legend-item";
     const jobs = r.steps.filter((s) => s.type === "job").length;
-    el.innerHTML = `<div class="legend-color" style="background:${COLORS[i]};height:5px;"></div><span>Kendaraan ${i + 1} (${jobs} titik)</span>`;
+    el.innerHTML = `<div class="legend-color" style="background:${COLORS[i]};height:5px;"></div><span>${jobs} titik pengiriman</span>`;
     legendItems.appendChild(el);
   });
   if (unassigned.length) {
@@ -647,7 +637,7 @@ function buildResultPanel(optData, selectedList) {
     cards.innerHTML += `
       <div class="result-card">
         <div class="result-card-header" style="background:${color}15;border-bottom:2px solid ${color}30;">
-          <span style="color:${color}">🚛 Kendaraan ${ri + 1}</span>
+         <span style="color:${color}">🚛 Rute Pengiriman</span>
           <span style="font-size:11px;color:var(--gray-600);font-weight:400;">${jobs.length} titik pengiriman</span>
         </div>
         <div class="result-card-body">
@@ -698,7 +688,7 @@ function buildDriverPanel(optData, selectedList) {
     html += `
       <div class="result-card" style="margin-bottom:10px;">
         <div class="result-card-header" style="background:${color}15;border-bottom:2px solid ${color}30;">
-          <span style="color:${color}">🚛 Kendaraan ${ri + 1}</span>
+         <span style="color:${color}">🚛 Data Driver</span>
           <span style="font-size:11px;">${distKm} km · ${durMin} mnt</span>
         </div>
         <div class="result-card-body">
@@ -768,7 +758,7 @@ function showWaModal(routeIdx) {
   let msg = `🚛 *PENUGASAN PENGIRIMAN B-LOG*\n`;
   msg += `📅 ${today}\n`;
   const driver = drivers[routeIdx] || { name: "", plate: "", phone: "" };
-  msg += `🔑 Kendaraan ${routeIdx + 1} (${vehicleType})\n`;
+  msg += `🔑 Tipe Kendaraan: ${vehicleType}\n`;
   msg += `👤 Driver: ${driver.name || "-"}\n`;
   msg += `🚘 Nomor Polisi: ${driver.plate || "-"}\n`;
   msg += `📱 WA: ${driver.phone || "-"}\n`;
@@ -874,12 +864,6 @@ document.getElementById("csv-file-input").addEventListener("change", (e) => {
 document
   .getElementById("btn-download-template")
   .addEventListener("click", downloadCsvTemplate);
-document
-  .getElementById("btn-veh-dec")
-  .addEventListener("click", () => changeVehicle(-1));
-document
-  .getElementById("btn-veh-inc")
-  .addEventListener("click", () => changeVehicle(1));
 document.getElementById("store-search").addEventListener("input", filterStores);
 document.getElementById("btn-select-all").addEventListener("click", selectAll);
 document
