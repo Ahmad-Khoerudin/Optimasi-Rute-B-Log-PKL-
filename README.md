@@ -18,6 +18,35 @@ npm run build
 npm run preview
 ```
 
+## Deploy ke Vercel
+
+Project ini bisa dijalankan di Vercel sebagai aplikasi statis. File konfigurasi `vercel.json` sudah disiapkan untuk membangun output ke folder `dist`.
+
+1. Push repository ini ke GitHub.
+2. Sambungkan repository GitHub Anda ke Vercel melalui dashboard Vercel.
+3. Atur environment variable `VITE_ORS_KEY` di dashboard Vercel.
+4. Deploy langsung dari dashboard Vercel, atau gunakan GitHub Actions untuk deployment otomatis.
+
+### Deploy otomatis via GitHub Actions
+
+Terdapat workflow GitHub Actions di `.github/workflows/vercel-deploy.yml`.
+
+- Buat secret `VERCEL_TOKEN` di repository GitHub Anda.
+- Buat secret `VITE_ORS_KEY` di repository GitHub Anda.
+
+Workflow akan berjalan setiap push ke `main` dan:
+
+1. Checkout kode
+2. Install dependency
+3. Build `dist`
+4. Deploy ke Vercel menggunakan `npx vercel --prod --prebuilt --confirm --token "$VERCEL_TOKEN"`
+
+Jika menggunakan Vercel CLI secara manual:
+
+```bash
+vercel --prod
+```
+
 ## Struktur
 
 - `index.html` — markup halaman
