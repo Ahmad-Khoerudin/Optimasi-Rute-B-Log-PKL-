@@ -268,9 +268,9 @@ function handleCsvFile(file) {
 }
 
 function downloadCsvTemplate() {
-  const header = "name,addr,lat,lon,area\n";
+  const header = "NO,TOKO,PROVINSI,KOTA/KABUPATEN,KETERANGAN,ALAMAT SP (LATLONG)\n";
   const example =
-    "Toko Contoh Jaya,Jl. Contoh Raya No.1 Jakarta Selatan,-6.2146,106.8451,Jakarta Selatan\n";
+    "1,CV ANDELA JAYA,JAWA BARAT,Kota Cirebon,ICI PAINT,-6.751383369072352, 108.53986894747766\n";
   const blob = new Blob([header + example], {
     type: "text/csv;charset=utf-8;",
   });
