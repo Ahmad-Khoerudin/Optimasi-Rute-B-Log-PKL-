@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prototype | Sistem Optimasi Rute</title>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+        <div class="logo-box">B-LOG</div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700">
+            PT Trimitra Trans Persada
+          </div>
+          <div class="logo-sub">
+            Be Logistics with Us · Accelerate Your Business
+          </div>
+        </div>
+      </div>
+      <div class="header-title">OPTIMASI RUTE PT TRIMITRA TRANS PERSADA</div>
+      <div class="header-badge">🚛 Dispatcher Tools</div>
+    </header>
+
+    <div class="main">
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="tabs">
+          <div class="tab active" data-tab="input">⚙️ Input</div>
+          <div class="tab" data-tab="result">📊 Hasil</div>
+          <div class="tab" data-tab="driver">👨‍✈️ Driver</div>
+        </div>
+
+        <!-- TAB: INPUT -->
+        <div class="tab-content active" id="tab-input">
+          <div class="form-group">
+            <div class="form-label">📍 Lokasi Depo / Gudang</div>
+            <div
+              class="form-select"
+              id="depot-fixed"
+              style="
+                background: var(--gray-100);
+                cursor: default;
+                display: flex;
+                align-items: center;
+              "
+            >
+              🏭 PT ICI Paints Indonesia (Dulux)
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">🚛 Tipe Kendaraan</div>
+            <select class="form-select" id="vehicle-type-select">
+              <option value="CDE">CDE (konsumsi 1 : 10 km/liter)</option>
+              <option value="CDD">CDD (konsumsi 1 : 7 km/liter)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">🚛 Jumlah Kendaraan</div>
+            <div class="vehicle-counter">
+              <button class="counter-btn" id="btn-veh-dec">−</button>
+              <div>
+                <div class="counter-val" id="vehicle-count">2</div>
+              </div>
+              <button class="counter-btn" id="btn-veh-inc">+</button>
+              <div class="counter-label">
+                unit kendaraan<br /><span
+                  style="color: var(--gray-400); font-size: 10px"
+                  >Maks. 10 kendaraan</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">📱 Nomor WA Driver per Kendaraan</div>
+            <div id="driver-phone-inputs"></div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="form-group">
+            <div class="form-label">📁 Import Titik Pengiriman (CSV)</div>
+            <div
+              style="font-size: 11px; color: var(--gray-600); line-height: 1.5"
+            >
+              Kolom wajib: <code>name, addr, lat, lon</code>. Kolom
+              <code>area</code> opsional.
+            </div>
+            <div style="display: flex; gap: 8px">
+              <label
+                class="btn btn-outline btn-sm"
+                style="cursor: pointer; flex: 1"
+              >
+                📤 Pilih File CSV
+                <input
+                  type="file"
+                  id="csv-file-input"
+                  accept=".csv"
+                  style="display: none"
+                />
+              </label>
+              <button class="btn btn-outline btn-sm" id="btn-download-template">
+                ⬇️ Template
+              </button>
+            </div>
+            <div id="csv-alert"></div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="form-group">
+            <div class="form-label">🏪 Titik Pengiriman (Jabodetabek)</div>
+            <div class="store-search">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                id="store-search"
+                placeholder="Cari nama toko atau area..."
+              />
+            </div>
+            <div class="store-actions">
+              <button class="link-btn" id="btn-select-all">Pilih Semua</button>
+              <button class="link-btn" id="btn-clear-all">Hapus Semua</button>
+            </div>
+            <div class="selected-count">
+              Dipilih: <span id="selected-count">0</span> titik pengiriman
+            </div>
+            <div class="store-list" id="store-list"></div>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="btn-optimize" disabled>
+            🗺️ Optimalkan Rute
+          </button>
+
+          <div id="input-alert"></div>
+        </div>
+
+        <!-- TAB: HASIL -->
+        <div class="tab-content" id="tab-result">
+          <div id="result-summary"></div>
+          <div id="result-cards"></div>
+        </div>
+
+        <!-- TAB: DRIVER -->
+        <div class="tab-content" id="tab-driver">
+          <div id="driver-panel">
+            <div class="alert alert-info">
+              ℹ️ Jalankan optimasi terlebih dahulu untuk melihat panel
+              pengiriman driver.
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /sidebar -->
+
+      <!-- MAP -->
+      <div class="map-area">
+        <div id="map"></div>
+        <div class="map-legend" id="map-legend">
+          <h4>Keterangan Rute</h4>
+          <div id="legend-items"></div>
+        </div>
+        <div class="loading-overlay" id="loading">
+          <div class="spinner"></div>
+          <div class="loading-text" id="loading-text">
+            Menghitung rute optimal...<br />Mohon tunggu sebentar
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /main -->
+
+    <!-- WHATSAPP MODAL -->
+    <div class="modal-backdrop" id="wa-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <span>📱 Pesan WhatsApp Driver</span>
+          <button class="modal-close" id="btn-wa-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="wa-msg" id="wa-msg-text"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-sm" id="btn-wa-copy">
+            📋 Salin Pesan
+          </button>
+          <button class="btn btn-green btn-sm" id="wa-send-btn">
+            💬 Kirim WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
